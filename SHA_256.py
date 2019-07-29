@@ -15,7 +15,6 @@ msgArray = []
 # note: unpackbits only works for uint8
 for x in inputString:
     msgArray.append(np.unpackbits(np.uint8(ord(x))))
-print(msgArray)
     
 print('Message length in bits: ' + str(msgLength))
 
@@ -181,10 +180,10 @@ for i in range(numBlocks):
         Register['b'] = Register['a']
         Register['a'] = np.uint32(np.mod((T1 + T2), 2**32))[0]
         
-        print('j = ' + str(j))
-        print('--------------------')
-        for r in Register:
-            print(r + ': ' + str(hex(Register[r])))
+        #print('j = ' + str(j))
+        #print('--------------------')
+        #for r in Register:
+            #print(r + ': ' + str(hex(Register[r])))
             
     intermediateHashValues[0] = np.mod((Register['a'] + intermediateHashValues[0]), 2**32)
     intermediateHashValues[1] = np.mod((Register['b'] + intermediateHashValues[1]), 2**32)
@@ -199,8 +198,13 @@ for i in range(numBlocks):
 print()
 print('final hash:')
 
+outStr = ''
+
 for h in range(8):
-    print(hex(intermediateHashValues[h]))
+    outStr += str( hex(intermediateHashValues[h]))[2:]
+    #print(hex(intermediateHashValues[h]))
+
+print(outStr)
     
         
         
