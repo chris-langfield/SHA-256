@@ -1,5 +1,8 @@
 ### python 3.6
 ### implementing: http://www.iwar.org.uk/comsec/resources/cipher/sha256-384-512.pdf
+### variable names are derived from the variable names used in the description of SHA-256 in the link above
+### written by Chris Langfield 
+
 import sys
 import numpy as np
 
