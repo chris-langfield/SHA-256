@@ -15,6 +15,7 @@ msgArray = []
 # note: unpackbits only works for uint8
 for x in inputString:
     msgArray.append(np.unpackbits(np.uint8(ord(x))))
+print(msgArray)
     
 print('Message length in bits: ' + str(msgLength))
 
@@ -86,6 +87,16 @@ K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x9
      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]
 
+def circularShift(b, n):
+    ### right-rotate 32 bit word b by integer n 
+        unpacked = np.unpackbits(np.array([np.uint32(b)]).view(np.uint8)).reshape(-1,8)
+        unpacked = np.flip(unpacked, 0)
+        unpacked = unpacked.reshape(-1,32)
+        unpacked = np.roll(unpacked, n)
+        packed = np.packbits(unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
+        return packed
+
+### SHA-256 auxiliary functions
 
 def Ch(e,f,g):
     e = np.uint32(e)
@@ -105,86 +116,18 @@ def Maj(a,b,c):
     bANDc = np.bitwise_and(b,c)
     return np.uint32(np.bitwise_xor(aANDb,np.bitwise_xor(aANDc,bANDc)))
 
-def Sigma0(a):
-    roll2unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll2unpacked = np.flip(roll2unpacked, 0)
-    roll2unpacked = roll2unpacked.reshape(-1,32)
-    roll2unpacked = np.roll(roll2unpacked, 2)
-    roll2packed = np.packbits(roll2unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-
-    roll13unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll13unpacked = np.flip(roll13unpacked, 0)
-    roll13unpacked = roll13unpacked.reshape(-1,32)
-    roll13unpacked = np.roll(roll13unpacked, 13)
-    roll13packed = np.packbits(roll13unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-    
-    roll22unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll22unpacked = np.flip(roll22unpacked, 0)
-    roll22unpacked = roll22unpacked.reshape(-1,32)
-    roll22unpacked = np.roll(roll22unpacked, 22)
-    roll22packed = np.packbits(roll22unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-    
-    return np.uint32(np.bitwise_xor(roll2packed,
-                          np.bitwise_xor(roll13packed,roll22packed)))
-
-def Sigma1(a):
-    roll6unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll6unpacked = np.flip(roll6unpacked, 0)
-    roll6unpacked = roll6unpacked.reshape(-1,32)
-    roll6unpacked = np.roll(roll6unpacked, 6)
-    roll6packed = np.packbits(roll6unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-
-    roll11unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll11unpacked = np.flip(roll11unpacked, 0)
-    roll11unpacked = roll11unpacked.reshape(-1,32)
-    roll11unpacked = np.roll(roll11unpacked, 11)
-    roll11packed = np.packbits(roll11unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-    
-    roll25unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll25unpacked = np.flip(roll25unpacked, 0)
-    roll25unpacked = roll25unpacked.reshape(-1,32)
-    roll25unpacked = np.roll(roll25unpacked, 25)
-    roll25packed = np.packbits(roll25unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-    
-    return np.uint32(np.bitwise_xor(roll6packed,
-                          np.bitwise_xor(roll11packed,roll25packed)))
+def Sigma0(a):  
+    return np.uint32(np.bitwise_xor(circularShift(a,2),
+                          np.bitwise_xor(circularShift(a,13),circularShift(a,22))))
+def Sigma1(a):    
+    return np.uint32(np.bitwise_xor(circularShift(a,6),
+                          np.bitwise_xor(circularShift(a,11),circularShift(a,25))))
 def sigma0(a):
-    roll7unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll7unpacked = np.flip(roll7unpacked, 0)
-    roll7unpacked = roll7unpacked.reshape(-1,32)
-    roll7unpacked = np.roll(roll7unpacked, 7)
-    roll7packed = np.packbits(roll7unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-
-    roll18unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll18unpacked = np.flip(roll18unpacked, 0)
-    roll18unpacked = roll18unpacked.reshape(-1,32)
-    roll18unpacked = np.roll(roll18unpacked, 18)
-    roll18packed = np.packbits(roll18unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-    
     return np.uint32(np.bitwise_xor(np.right_shift(a,3),
-                          np.bitwise_xor(roll7packed,roll18packed)))
+                          np.bitwise_xor(circularShift(a,7),circularShift(a,18))))
 def sigma1(a):
-    roll17unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll17unpacked = np.flip(roll17unpacked, 0)
-    roll17unpacked = roll17unpacked.reshape(-1,32)
-    roll17unpacked = np.roll(roll17unpacked, 17)
-    roll17packed = np.packbits(roll17unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-
-    roll19unpacked = np.unpackbits(np.array([np.uint32(a)]).view(np.uint8)).reshape(-1,8)
-    roll19unpacked = np.flip(roll19unpacked, 0)
-    roll19unpacked = roll19unpacked.reshape(-1,32)
-    roll19unpacked = np.roll(roll19unpacked, 19)
-    roll19packed = np.packbits(roll19unpacked.reshape(-1,4,8)[:,::-1]).view(np.uint32)
-    
     return np.uint32(np.bitwise_xor(np.right_shift(a,10),
-                          np.bitwise_xor(roll17packed,roll19packed)))
-def mod32add(args):
-    ### WIP do not use
-    N = len(args)
-    result = 0
-    for i in range(N):
-        result = np.mod(result + args[i],2**32)
-    return result    
+                          np.bitwise_xor(circularShift(a,17),circularShift(a,19))))
 
 # initialize hash values
 intermediateHashValues[0] = np.uint32(initialHashValues[0])
