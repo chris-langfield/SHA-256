@@ -57,9 +57,7 @@ print('Number of 512-bit blocks: ' + str(numBlocks))
 blocks = [[0 for x in range(16)] for b in range(numBlocks)]
 for b in range(numBlocks):
     for w in range(16):
-        blocks[b][w] = preprocMsg[ b*512 + 32*w : b*512 + 32*(w+1)]
-        #print(str(b*512 + 32*w) + ' to ' + str((b*512 + 32*(w+1))))
-    
+        blocks[b][w] = preprocMsg[ b*512 + 32*w : b*512 + 32*(w+1)]    
 
     ### MAIN LOOP
 
@@ -182,6 +180,8 @@ for i in range(numBlocks):
         Register['c'] = Register['b']
         Register['b'] = Register['a']
         Register['a'] = np.uint32(np.mod((T1 + T2), 2**32))[0]
+
+        # uncomment to print out intermediate register values
         
         #print('j = ' + str(j))
         #print('--------------------')
